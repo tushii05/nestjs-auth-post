@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -21,13 +21,14 @@ export class AuthService {
     }
 
     async login(dto: LoginDto) {
-        const user = await this.userService.findByEmail(dto.email);
-        if (!user) throw new Error('User not found');
+    const user = await this.userService.findByEmail(dto.email);
+    if (!user) throw new NotFoundException('User not found');
 
-        const passValid = await bcrypt.compare(dto.password, user.password);
-        if (!passValid) throw new Error('Invalid credentials');
+    const passValid = await bcrypt.compare(dto.password, user.password);
+    if (!passValid) throw new UnauthorizedException('Invalid credentials');
 
-        const token = this.jwt.sign({ id: user.id, role: user.role });
-        return { token };
-    }
+    const token = this.jwt.sign({ id: user.id, role: user.role });
+    return { token };
+}
+
 }
