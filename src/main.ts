@@ -24,12 +24,16 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      transformOptions: { enableImplicitConversion: true },
+
       // forbidUnknownValues: true,
     }),
   );
 
   app.useGlobalFilters(new HttpErrorFilter());
   app.useStaticAssets(join(__dirname, '..', 'public'));
+
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), { prefix: '/uploads/' });
 
   await app.listen(env.port);
 }

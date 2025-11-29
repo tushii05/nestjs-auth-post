@@ -1,12 +1,27 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsNumber, IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreatePostDto {
-  @ApiProperty()
+  @ApiProperty({ description: 'Post title' })
+  @IsString()
   name: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Post description' })
+  @IsString()
   description: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'User ID' })
+  @Type(() => Number)
+  @IsNumber()
   userId: number;
+
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+    required: false,
+    description: 'Banner image file',
+  })
+  @IsOptional()
+  banner?: any;
 }

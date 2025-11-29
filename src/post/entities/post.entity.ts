@@ -12,6 +12,9 @@ export class Post {
   @Column()
   description: string;
 
+  @Column({ nullable: true })
+  banner: string;
+
   @ManyToOne(() => User)
   user: User;
 }
