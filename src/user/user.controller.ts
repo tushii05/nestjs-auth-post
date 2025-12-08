@@ -1,6 +1,7 @@
 import { Controller, DefaultValuePipe, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
 import { UserService } from './user.service';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
+import { PaginationQueryDto } from 'src/common/utils/pagination-query.dto';
 
 @ApiTags('Users')
 @Controller('user')
@@ -8,14 +9,16 @@ export class UserController {
   constructor(private userService: UserService) { }
 
   @Get()
-  findAll(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Query('sortBy', new DefaultValuePipe('id')) sortBy: string,
-    @Query('order', new DefaultValuePipe('DESC')) order: 'ASC' | 'DESC',
-    @Query('search') search?: string,
-  ) {
-    return this.userService.findAll(page, limit, sortBy as any, order, search);
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'sortBy', required: false, type: String })
+  @ApiQuery({ name: 'order', required: false, enum: ['ASC', 'DESC'] })
+  @ApiQuery({ name: 'search', required: false, type: String })
+  findAll(@Query() query: PaginationQueryDto) {
+    return this.userService.findAll({
+      ...query,
+      searchableFields: ['username'],
+    });
   }
 
   @Get(':id')

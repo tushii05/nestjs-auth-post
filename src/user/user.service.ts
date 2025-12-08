@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { FindOptionsOrder, ILike, Repository } from 'typeorm';
+import { CreateUserDto } from './dto/create-user.dto';
+import { buildPagination, buildSearch, buildSorting, QueryOptions } from 'src/common/utils/pagination.utils';
 
 @Injectable()
 export class UserService {
@@ -10,42 +12,37 @@ export class UserService {
     private repo: Repository<User>,
   ) { }
 
-  async create(data: any) {
+  async create(data: CreateUserDto) {
     const user = this.repo.create(data);
     return this.repo.save(user);
   }
 
-  async findAll(
-    page = 1,
-    limit = 10,
-    sortBy: keyof User = 'id',
-    order: 'ASC' | 'DESC' = 'DESC',
-    search?: string,
-  ) {
-    const skip = (page - 1) * limit;
+  async findAll(options: QueryOptions) {
+    const {
+      page = 1,
+      limit = 10,
+      sortBy = 'id',
+      order = 'DESC',
+      search = '',
+      searchableFields = ['username'],
+    } = options;
+    const { skip, take } = buildPagination(page, limit);
+    const orderObj = buildSorting(sortBy, order);
+    const where = buildSearch(search, searchableFields);
 
-    const where = search
-      ? [
-        { username: ILike(`%${search}%`) },
-        { email: ILike(`%${search}%`) },
-      ]
-      : {};
-
-
-    const orderObj: FindOptionsOrder<User> = {};
-    orderObj[sortBy] = order;
 
     const [users, total] = await this.repo.findAndCount({
       where,
-      order: orderObj,
       skip,
-      take: limit,
+      take,
+      order: orderObj,
     });
 
     return {
       data: users,
       total,
       page,
+      limit,
       lastPage: Math.ceil(total / limit),
     };
   }
